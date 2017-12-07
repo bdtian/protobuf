@@ -832,6 +832,7 @@
 			buildSettings = {
 				HEADER_SEARCH_PATHS = "$(SRCROOT)";
 				PRODUCT_NAME = ProtocolBuffers;
+				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -841,6 +842,7 @@
 			buildSettings = {
 				HEADER_SEARCH_PATHS = "$(SRCROOT)";
 				PRODUCT_NAME = ProtocolBuffers;
+				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
