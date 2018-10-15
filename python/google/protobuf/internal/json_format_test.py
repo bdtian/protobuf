@@ -495,6 +495,8 @@ class JsonFormatTest(JsonFormatBase):
     message.value['email'] = None
     message.value.get_or_create_struct('address')['city'] = 'SFO'
     message.value['address']['house_number'] = 1024
+    message.value.get_or_create_struct('empty_struct')
+    message.value.get_or_create_list('empty_list')
     struct_list = message.value.get_or_create_list('list')
     struct_list.extend([6, 'seven', True, False, None])
     struct_list.add_struct()['subkey2'] = 9
@@ -509,6 +511,8 @@ class JsonFormatTest(JsonFormatBase):
             '      "city": "SFO", '
             '      "house_number": 1024'
             '    }, '
+            '    "empty_struct": {}, '
+            '    "empty_list": [], '
             '    "age": 10, '
             '    "name": "Jim", '
             '    "attend": true, '
@@ -519,6 +523,8 @@ class JsonFormatTest(JsonFormatBase):
             '}'))
     parsed_message = json_format_proto3_pb2.TestStruct()
     self.CheckParseBack(message, parsed_message)
+    parsed_message.value['empty_struct']  # check for regression; this used to raise
+    parsed_message.value['empty_list']
 
   def testValueMessage(self):
     message = json_format_proto3_pb2.TestValue()
@@ -791,9 +797,6 @@ class JsonFormatTest(JsonFormatBase):
     json_format.Parse(text, parsed_message, ignore_unknown_fields=True)
 
   def testDuplicateField(self):
-    # Duplicate key check is not supported for python2.6
-    if sys.version_info < (2, 7):
-      return
     self.CheckError('{"int32Value": 1,\n"int32Value":2}',
                     'Failed to load JSON: duplicate key int32Value.')
 
@@ -982,6 +985,18 @@ class JsonFormatTest(JsonFormatBase):
     message.int32_value = 12345
     self.assertEqual('{\n"int32Value": 12345\n}',
                      json_format.MessageToJson(message, indent=0))
+
+  def testFormatEnumsAsInts(self):
+    message = json_format_proto3_pb2.TestMessage()
+    message.enum_value = json_format_proto3_pb2.BAR
+    message.repeated_enum_value.append(json_format_proto3_pb2.FOO)
+    message.repeated_enum_value.append(json_format_proto3_pb2.BAR)
+    self.assertEqual(json.loads('{\n'
+                                '  "enumValue": 1,\n'
+                                '  "repeatedEnumValue": [0, 1]\n'
+                                '}\n'),
+                     json.loads(json_format.MessageToJson(
+                         message, use_integers_for_enums=True)))
 
   def testParseDict(self):
     expected = 12345
